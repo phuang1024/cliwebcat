@@ -14,6 +14,14 @@ pip install *.whl
 webcat --help
 ```
 
+## Configuration
+
+When you run `webcat` the first time, it will interactively ask you for configuration.
+
+* Snarf root URL: Root path e.g. `http://example.com/apcssnarf`
+* Username: Your WebCAT username.
+* Password: Stored in plaintext.
+
 ## Usage
 
 ``` bash
