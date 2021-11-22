@@ -17,6 +17,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import sys
 import os
 import re
 import json
@@ -59,51 +60,77 @@ def write_config(config):
         json.dump(config, f, indent=4)
 
 
-def get_regex(snarfpath):
-    pattern = "https{0,1}://"
-    pattern += snarfpath.replace(".", "\\.").split("://")[1]
-    pattern += "/.*\\.zip"
-    return re.compile(pattern)
+def parse_pkg(text, url):
+    url_pat = "https{0,1}://"
+    url_pat += url.replace(".", "\\.").split("://")[1]
+    url_pat += "/.*?\\.zip"
+    snarf_url = re.compile(url_pat).findall(text)[0]
+
+    name = re.compile("name=\".*?\"").findall(text)[0].replace("name=", "").replace("\"", "")
+    category = re.compile("category=\".*?\"").findall(text)[0].replace("category=", "").replace("\"", "")
+    desc = re.compile("<description>.*?</description>").findall(text)[0].replace("<description>", "").replace("</description>", "")
+
+    return {
+        "name": name,
+        "category": category,
+        "desc": desc,
+        "url": snarf_url,
+    }
 
 def read_pkgs(url, hidden):
     r = requests.get(os.path.join(url, "snarf.xml"))
 
     text = r.text
-    l = len(text)
     if not hidden:
         text = remove_xml_comments(text)
 
-    url_pat = "https{0,1}://"
-    url_pat += url.replace(".", "\\.").split("://")[1]
-    url_pat += "/.*\\.zip"
+    pkgs = []
 
-    return get_regex(url).findall(text)
+    start = re.compile("<package")
+    end = re.compile("</package>")
+    for s, e in zip(start.finditer(text), end.finditer(text)):
+        try:
+            pkgs.append(parse_pkg(text[s.start(0):e.start(0)], url))
+        except IndexError:
+            pass
+
+    return pkgs
+
 
 def list_pkgs(pkgs):
     if len(pkgs) == 0:
         print("No packages found.")
         return
 
-    for i, path in enumerate(pkgs):
-        name = os.path.basename(path).replace(".zip", "")
-        print(f"{i}: {name}")
+    longest = max([len(p["name"]) for p in pkgs]) + 3
+    for i, pkg in enumerate(pkgs):
+        name = pkg["name"]
+        desc = pkg["desc"]
 
+        sys.stdout.write(str(i)+":")
+        sys.stdout.write(" " * (6-len(str(i))))
+        sys.stdout.write(name)
+        sys.stdout.write(" " * (longest - len(name)))
+        sys.stdout.write(desc)
+        sys.stdout.write("\n")
 
-def snarf(pkgs, pkg):
-    if pkg is None:
-        pkg = input("Package to snarf: ")
+    sys.stdout.flush()
+
+def snarf(pkgs, identifier):
+    if identifier is None:
+        print("Specify package in CLI argument.")
+        return
 
     try:
-        if pkg.isdigit():
-            path = pkgs[int(pkg)]
+        if identifier.isdigit():
+            pkg = pkgs[int(identifier)]
         else:
-            path = [p for p in pkgs if p.endswith(f"/{pkg}.zip")][0]
+            pkg = [p for p in pkgs if p["url"].endswith(f"/{identifier}.zip")][0]
     except IndexError:
         print("Invalid package.")
         return
-    name = path.split("/")[-1].replace(".zip", "")
 
-    r = requests.get(path)
+    r = requests.get(pkg["url"])
     if r.status_code != 200:
         print("Request failed.")
         return
@@ -111,6 +138,7 @@ def snarf(pkgs, pkg):
     with open(TMP, "wb") as f:
         f.write(r.content)
 
+    name = pkg["name"]
     if os.path.isdir(name):
         if input(f"{name} already exists. Overwrite? [y/N] ").lower() != "y":
             return
