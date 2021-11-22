@@ -167,13 +167,13 @@ def submit(pkgs, identifier, submission, config):
     pkg = get_pkg(pkgs, identifier)
 
 
-def main(args):
+def main():
     parser = argparse.ArgumentParser(description="CLI Web-CAT")
     parser.add_argument("mode", nargs="?", choices={"ls", "config", "info", "snarf", "submit"}, default="ls")
     parser.add_argument("pkg", nargs="?", help="Package name or index.")
     parser.add_argument("submit", nargs="?", help="Path to your work to submit.")
     parser.add_argument("--hidden", action="store_true", help="Allow hidden packages.")
-    args = parser.parse_args(args)
+    args = parser.parse_args()
 
     config = read_config()
     pkgs = read_pkgs(config["snarfpath"], args.hidden)
