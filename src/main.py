@@ -38,6 +38,22 @@ def remove_xml_comments(text):
 
     return text
 
+def get_pkg(pkgs, identifier):
+    if identifier is None:
+        print("Specify package in CLI argument.")
+        sys.exit(1)
+
+    try:
+        if identifier.isdigit():
+            pkg = pkgs[int(identifier)]
+        else:
+            pkg = [p for p in pkgs if p["url"].endswith(f"/{identifier}.zip")][0]
+
+    except IndexError:
+        print(f"Invalid package \"{identifier}\".")
+        sys.exit(1)
+
+    return pkg
 
 def read_config():
     data = {}
@@ -117,18 +133,7 @@ def list_pkgs(pkgs):
     sys.stdout.flush()
 
 def snarf(pkgs, identifier):
-    if identifier is None:
-        print("Specify package in CLI argument.")
-        return
-
-    try:
-        if identifier.isdigit():
-            pkg = pkgs[int(identifier)]
-        else:
-            pkg = [p for p in pkgs if p["url"].endswith(f"/{identifier}.zip")][0]
-    except IndexError:
-        print("Invalid package.")
-        return
+    pkg = get_pkg(pkgs, identifier)
 
     r = requests.get(pkg["url"])
     if r.status_code != 200:
@@ -149,10 +154,19 @@ def snarf(pkgs, identifier):
 
     print(f"{name} snarfed.")
 
+def info(pkgs, identifier):
+    pkg = get_pkg(pkgs, identifier)
+
+    print("Package " + pkg["name"])
+    print("  * Name: " + pkg["name"])
+    print("  * Category: " + pkg["category"])
+    print("  * Description: " + pkg["desc"])
+    print("  * URL: " + pkg["url"])
+
 
 def main(args):
     parser = argparse.ArgumentParser(description="CLI Snarf")
-    parser.add_argument("mode", nargs="?", choices={"ls", "config", "snarf", "submit"}, default="ls")
+    parser.add_argument("mode", nargs="?", choices={"ls", "config", "info", "snarf", "submit"}, default="ls")
     parser.add_argument("pkg", nargs="?", help="Package name or index.")
     parser.add_argument("submit", nargs="?", help="Path to your work to submit.")
     parser.add_argument("--hidden", action="store_true", help="Allow hidden packages.")
@@ -166,6 +180,9 @@ def main(args):
 
     elif args.mode == "config":
         os.system(f"vim {CONFIG_PATH}")
+
+    elif args.mode == "info":
+        info(pkgs, args.pkg)
 
     elif args.mode == "snarf":
         snarf(pkgs, args.pkg)
