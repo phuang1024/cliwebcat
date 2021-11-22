@@ -132,6 +132,15 @@ def list_pkgs(pkgs):
 
     sys.stdout.flush()
 
+def info(pkgs, identifier):
+    pkg = get_pkg(pkgs, identifier)
+
+    print("Package " + pkg["name"])
+    print("  * Name: " + pkg["name"])
+    print("  * Category: " + pkg["category"])
+    print("  * Description: " + pkg["desc"])
+    print("  * URL: " + pkg["url"])
+
 def snarf(pkgs, identifier):
     pkg = get_pkg(pkgs, identifier)
 
@@ -154,14 +163,8 @@ def snarf(pkgs, identifier):
 
     print(f"{name} snarfed.")
 
-def info(pkgs, identifier):
+def submit(pkgs, identifier, submission, config):
     pkg = get_pkg(pkgs, identifier)
-
-    print("Package " + pkg["name"])
-    print("  * Name: " + pkg["name"])
-    print("  * Category: " + pkg["category"])
-    print("  * Description: " + pkg["desc"])
-    print("  * URL: " + pkg["url"])
 
 
 def main(args):
@@ -186,5 +189,8 @@ def main(args):
 
     elif args.mode == "snarf":
         snarf(pkgs, args.pkg)
+
+    elif args.mode == "submit":
+        submit(pkgs, args.pkg, args.submit, config)
 
     write_config(config)
