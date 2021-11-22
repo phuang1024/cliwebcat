@@ -29,6 +29,15 @@ CONFIG_PATH = os.path.expanduser("~/.config/clisnarf.json")
 TMP = os.path.expanduser("~/.clisnarf.zip")
 
 
+def remove_xml_comments(text):
+    while "<!--" in text:
+        start = text.find("<!--")
+        end = text.find("-->")
+        text = text[:start] + text[end+3:]
+
+    return text
+
+
 def read_config():
     data = {}
     if os.path.isfile(CONFIG_PATH):
@@ -56,9 +65,19 @@ def get_regex(snarfpath):
     pattern += "/.*\\.zip"
     return re.compile(pattern)
 
-def read_pkgs(url):
+def read_pkgs(url, hidden):
     r = requests.get(os.path.join(url, "snarf.xml"))
-    return get_regex(url).findall(r.text)
+
+    text = r.text
+    l = len(text)
+    if not hidden:
+        text = remove_xml_comments(text)
+
+    url_pat = "https{0,1}://"
+    url_pat += url.replace(".", "\\.").split("://")[1]
+    url_pat += "/.*\\.zip"
+
+    return get_regex(url).findall(text)
 
 def list_pkgs(pkgs):
     if len(pkgs) == 0:
@@ -85,6 +104,10 @@ def snarf(pkgs, pkg):
     name = path.split("/")[-1].replace(".zip", "")
 
     r = requests.get(path)
+    if r.status_code != 200:
+        print("Request failed.")
+        return
+
     with open(TMP, "wb") as f:
         f.write(r.content)
 
@@ -101,14 +124,14 @@ def snarf(pkgs, pkg):
 
 def main(args):
     parser = argparse.ArgumentParser(description="CLI Snarf")
-    parser.add_argument("mode", choices={"ls", "config", "snarf", "submit"}, default="ls")
+    parser.add_argument("mode", nargs="?", choices={"ls", "config", "snarf", "submit"}, default="ls")
     parser.add_argument("pkg", nargs="?", help="Package name or index.")
     parser.add_argument("submit", nargs="?", help="Path to your work to submit.")
-    parser.add_argument("--hidden", help="Allow hidden packages.")
+    parser.add_argument("--hidden", action="store_true", help="Allow hidden packages.")
     args = parser.parse_args(args)
 
     config = read_config()
-    pkgs = read_pkgs(config["snarfpath"])
+    pkgs = read_pkgs(config["snarfpath"], args.hidden)
 
     if args.mode == "ls":
         list_pkgs(pkgs)
