@@ -1,6 +1,6 @@
 #
-#  CLI Snarf
-#  CLI Web-CAT snarfer for people who use VIM.
+#  CLI Web-CAT
+#  CLI Web-CAT interface.
 #  Copyright Patrick Huang 2021
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -168,7 +168,7 @@ def submit(pkgs, identifier, submission, config):
 
 
 def main(args):
-    parser = argparse.ArgumentParser(description="CLI Snarf")
+    parser = argparse.ArgumentParser(description="CLI Web-CAT")
     parser.add_argument("mode", nargs="?", choices={"ls", "config", "info", "snarf", "submit"}, default="ls")
     parser.add_argument("pkg", nargs="?", help="Package name or index.")
     parser.add_argument("submit", nargs="?", help="Path to your work to submit.")

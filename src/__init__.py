@@ -1,6 +1,6 @@
 #
-#  CLI Snarf
-#  CLI Web-CAT snarfer for people who use VIM.
+#  CLI Web-CAT
+#  CLI Web-CAT interface.
 #  Copyright Patrick Huang 2021
 #
 #  This program is free software: you can redistribute it and/or modify
