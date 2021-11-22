@@ -26,8 +26,8 @@ import argparse
 import zipfile
 from getpass import getpass
 
-CONFIG_PATH = os.path.expanduser("~/.config/clisnarf.json")
-TMP = os.path.expanduser("~/.clisnarf.zip")
+CONFIG_PATH = os.path.expanduser("~/.config/cliwebcat.json")
+TMP = os.path.expanduser("~/.cliwebcat.zip")
 
 
 def remove_xml_comments(text):

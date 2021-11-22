@@ -37,6 +37,7 @@ webcat snarf 12345
 webcat snarf JMCh12_AsDf
 
 # Submit (not implemneted yet)
-webcat submit /path/to/folder
+webcat submit 12345 /path/to/folder
+webcat submit JMCh12_AsDf /path/to/folder
 
 ```
