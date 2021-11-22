@@ -168,7 +168,7 @@ def submit(pkgs, identifier, submission, config):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CLI Web-CAT")
+    parser = argparse.ArgumentParser(description="CLI Web-CAT interface")
     parser.add_argument("mode", nargs="?", choices={"ls", "config", "info", "snarf", "submit"}, default="ls")
     parser.add_argument("pkg", nargs="?", help="Package name or index.")
     parser.add_argument("submit", nargs="?", help="Path to your work to submit.")
